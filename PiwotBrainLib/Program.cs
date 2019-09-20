@@ -28,20 +28,24 @@ namespace PiwotBrainLib
             doGo = true;
             foofoo = false;
 
-            Brain b = new Brain(1, new int[] { 4,8}, 1);
+            Brain b = new Brain(1, 8, 1);
 
             Learner l = new Learner()
             {
                 Brain = b,
                 DataExtractor = (i, j) => { double x = rng.NextDouble(); return (Matrix<double>.Build.Dense(1, 1, x), Matrix<double>.Build.Dense(1, 1, FuncToLearn(x))); },
-                ExampleBlockSize = 1,
+                ExampleBlockSize = 3,
                 Accuracy = 10
                 
             };
-            l.LearnToGivenError(0.00005);
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
             do
             {
+                for(int i = 0; i < 10000; i++)
+                    l.LearnOneBlock();
                 DrawFunc(b);
+                Console.WriteLine($"{l.ExamplesDone * 1000 / sw.ElapsedMilliseconds}".PadRight(20));
             }while(true);
         }
         static double FuncToLearn(double x)

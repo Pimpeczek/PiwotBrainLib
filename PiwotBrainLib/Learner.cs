@@ -10,7 +10,7 @@ namespace PiwotBrainLib
     {
         protected Brain brain;
         protected Example[] exampleBlock;
-
+        public bool ExtractDataOnTheRun = false;
         protected Matrix<double>[] synapsGradient;
         protected Matrix<double>[] biasGradient;
 
@@ -21,7 +21,7 @@ namespace PiwotBrainLib
 
         protected Vector<double> errors;
         int lastErrorPosition = 0;
-        public double MeanSquaredError { get; protected set; } = 10000000;
+        public double MeanSquaredError { get; protected set; } = double.PositiveInfinity;
 
         protected int errorMemoryLenght = 10;
         public int ErrorMemoryLenght
@@ -79,6 +79,9 @@ namespace PiwotBrainLib
                 brain = value;
                 synapsGradientMomentum = brain.GetSynapsGradientFrame();
                 biasGradientMomentum = brain.GetBiasGradientFrame();
+                MeanSquaredError = double.PositiveInfinity;
+                BlocksDone = 0;
+                ExamplesDone = 0;
             }
         }
 
@@ -114,17 +117,24 @@ namespace PiwotBrainLib
 
         public void LearnToGivenError(double error)
         {
-            while (LearnOneBlock() > error) { }
+            while (MeanSquaredError > error) { }
         }
 
-        public double LearnGivenData(Matrix<double>[] input, Matrix<double>[] expectedOutput)
+        public double LearnOnGivenData(Matrix<double>[] input, Matrix<double>[] expectedOutput)
         {
+            ExamplesDone = 0;
+            BlocksDone = 0;
+            while (ExamplesDone == input.Length)
+            {
+                PrepareOneBlock(input, expectedOutput);
+            }
+            LearnOneBlock();
             return MeanSquaredError;
         }
 
         public double LearnOneBlock()
         {
-            PrepareOneBlock();
+            ExtractOneBlock();
             (Matrix<double>[], Matrix<double>[], double) gradientTouple;
             gradientTouple = brain.CalculateOneGradients(exampleBlock[0].input, exampleBlock[0].output);
             synapsGradient = gradientTouple.Item1;
@@ -157,7 +167,7 @@ namespace PiwotBrainLib
             return MeanSquaredError;
         }
 
-        void PrepareOneBlock()
+        void ExtractOneBlock()
         {
             if (DataExtractor == null)
                 throw new NullReferenceException("DataExtractor");
@@ -168,6 +178,19 @@ namespace PiwotBrainLib
                 data = DataExtractor(BlocksDone, i);
                 exampleBlock[i].input = data.Item1;
                 exampleBlock[i].output = data.Item2;
+            }
+            BlocksDone++;
+            ExamplesDone += exampleBlockSize;
+        }
+
+        void PrepareOneBlock(Matrix<double>[] input, Matrix<double>[] expectedOutput)
+        {
+            int startPoint = BlocksDone * exampleBlockSize;
+            for (int i = 0; i < exampleBlockSize; i++)
+            {
+                exampleBlock[i].input = input[startPoint];
+                exampleBlock[i].output = expectedOutput[startPoint];
+                startPoint++;
             }
             BlocksDone++;
             ExamplesDone += exampleBlockSize;
