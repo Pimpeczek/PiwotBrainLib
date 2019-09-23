@@ -8,7 +8,7 @@ namespace PiwotBrainLib
 {
     class Learner
     {
-        protected Brain brain;
+        protected OpenBrain brain;
         protected Example[] exampleBlock;
         public bool ExtractDataOnTheRun = false;
         protected Matrix<double>[] synapsGradient;
@@ -68,7 +68,7 @@ namespace PiwotBrainLib
             }
         }
 
-        public Brain Brain
+        public BrainCore Brain
         {
             get
             {
@@ -76,9 +76,9 @@ namespace PiwotBrainLib
             }
             set
             {
-                brain = value;
-                synapsGradientMomentum = brain.GetSynapsGradientFrame();
-                biasGradientMomentum = brain.GetBiasGradientFrame();
+                //brain = value;
+                //synapsGradientMomentum = brain.GetSynapsGradientFrame();
+                //biasGradientMomentum = brain.GetBiasGradientFrame();
                 MeanSquaredError = double.PositiveInfinity;
                 BlocksDone = 0;
                 ExamplesDone = 0;
@@ -136,7 +136,7 @@ namespace PiwotBrainLib
         {
             ExtractOneBlock();
             (Matrix<double>[], Matrix<double>[], double) gradientTouple;
-            gradientTouple = brain.CalculateOneGradients(exampleBlock[0].input, exampleBlock[0].output);
+            gradientTouple = brain.CalculateGradients(exampleBlock[0].input, exampleBlock[0].output);
             synapsGradient = gradientTouple.Item1;
             biasGradient = gradientTouple.Item2;
 
@@ -147,7 +147,7 @@ namespace PiwotBrainLib
 
             for (int i = 1; i < exampleBlockSize; i++)
             {
-                gradientTouple = brain.CalculateOneGradients(exampleBlock[i].input, exampleBlock[i].output);
+                gradientTouple = brain.CalculateGradients(exampleBlock[i].input, exampleBlock[i].output);
                 for (int l = 0; l < brain.TotalSynapsLayers; l++)
                 {
                     synapsGradient[l] += gradientTouple.Item1[l];

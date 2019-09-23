@@ -15,18 +15,18 @@ namespace PiwotBrainLib
     interface INeuronActivation
     {
         /// <summary>
-        /// Normalizes a given value in a class specific way.
+        /// Normalizes given neuron matrix values in a class specific way.
         /// </summary>
         /// <param name="neurons">The neuron vector to be normalized.</param>
-        /// <returns>xDS</returns>
-        Matrix<double> Activate(Matrix<double> neurons);
+        /// <param name="layer">The neuron layer number, with input neurons being layer zero.</param>
+        Matrix<double> Activate(Matrix<double> neurons, int layer);
 
         /// <summary>
-        /// Returns a derivative of a class specific funtion at a given value.
+        /// Returns a derivative of a class specific funtion for all values in a given neuron matrix.
         /// </summary>
         /// <param name="neurons">The neuron vector for the function to be derivatived at.</param>
-        /// <returns>xDS</returns>
-        Matrix<double> Derive(Matrix<double> neurons);
+        /// <param name="layer">The neuron layer number, with input neurons being layer zero.</param>
+        Matrix<double> Derive(Matrix<double> neurons, int layer);
     }
 
     /// <summary>
@@ -34,13 +34,22 @@ namespace PiwotBrainLib
     /// </summary>
     class RawActivation : INeuronActivation
     {
-
-        public Matrix<double> Activate(Matrix<double> neurons)
+        /// <summary>
+        /// Returns raw neurons.
+        /// </summary>
+        /// <param name="neurons">The neuron vector to be normalized.</param>
+        /// <param name="layer">The neuron layer number, with input neurons being layer zero.</param>
+        public Matrix<double> Activate(Matrix<double> neurons, int layer)
         {
             return neurons.Map((x) => x);
         }
 
-        public Matrix<double> Derive(Matrix<double> neurons)
+        /// <summary>
+        /// Returns a column matrix of ones.
+        /// </summary>
+        /// <param name="neurons">The neuron vector for the function to be derivatived at.</param>
+        /// <param name="layer">The neuron layer number, with input neurons being layer zero.</param>
+        public Matrix<double> Derive(Matrix<double> neurons, int layer)
         {
             return neurons.Map((x) => 1.0);
         }
@@ -52,14 +61,22 @@ namespace PiwotBrainLib
     class LogisticActivation : INeuronActivation
     {
         //https://calculus.subwiki.org/wiki/Logistic_function
-        public Matrix<double> Derive(Matrix<double> neurons)
+        /// <summary>
+        /// Normalizes given neuron matrix by applying logistic function to each value.
+        /// </summary>
+        /// <param name="neurons">The neuron vector to be normalized.</param>
+        /// <param name="layer">The neuron layer number, with input neurons being layer zero.</param>
+        public Matrix<double> Derive(Matrix<double> neurons, int layer)
         {
-
-
             return neurons.Map((x) => { x = SpecialFunctions.Logistic(x); return x * (1 - x); });
-
         }
-        public Matrix<double> Activate(Matrix<double> neurons)
+
+        /// <summary>
+        /// Returns column matrix of logistic function derivative applied to all values in a given neuron matrix.
+        /// </summary>
+        /// <param name="neurons">The neuron vector for the function to be derivatived at.</param>
+        /// <param name="layer">The neuron layer number, with input neurons being layer zero.</param>
+        public Matrix<double> Activate(Matrix<double> neurons, int layer)
         {
             return neurons.Map((x) => SpecialFunctions.Logistic(x));
         }
@@ -71,12 +88,23 @@ namespace PiwotBrainLib
     class SechActivation : INeuronActivation
     {
         //https://en.wikipedia.org/wiki/Hyperbolic_function
-        public Matrix<double> Derive(Matrix<double> neurons)
+        /// <summary>
+        /// Normalizes given neuron matrix by applying hyperbolic function to each value.
+        /// </summary>
+        /// <param name="neurons">The neuron vector to be normalized.</param>
+        /// <param name="layer">The neuron layer number, with input neurons being layer zero.</param>
+        public Matrix<double> Derive(Matrix<double> neurons, int layer)
         {
             return neurons.Map((x) => -Trig.Sech(x) * Trig.Tanh(x));
 
         }
-        public Matrix<double> Activate(Matrix<double> neurons)
+
+        /// <summary>
+        /// Returns column matrix of hyperbolic function derivative applied to all values in a given neuron matrix.
+        /// </summary>
+        /// <param name="neurons">The neuron vector for the function to be derivatived at.</param>
+        /// <param name="layer">The neuron layer number, with input neurons being layer zero.</param>
+        public Matrix<double> Activate(Matrix<double> neurons, int layer)
         {
             return neurons.Map((x) => Trig.Sech(x));
         }
@@ -88,12 +116,23 @@ namespace PiwotBrainLib
     class TanhActivation : INeuronActivation
     {
         //https://en.wikipedia.org/wiki/Hyperbolic_function
-        public Matrix<double> Derive(Matrix<double> neurons)
+        /// <summary>
+        /// Normalizes given neuron matrix by applying hyperbolic tangens function to each value.
+        /// </summary>
+        /// <param name="neurons">The neuron vector to be normalized.</param>
+        /// <param name="layer">The neuron layer number, with input neurons being layer zero.</param>
+        public Matrix<double> Derive(Matrix<double> neurons, int layer)
         {
             return neurons.Map((x) => { x = Trig.Sech(x); return x * x; });
 
         }
-        public Matrix<double> Activate(Matrix<double> neurons)
+
+        /// <summary>
+        /// Returns column matrix of hyperbolic tangens function derivative applied to all values in a given neuron matrix.
+        /// </summary>
+        /// <param name="neurons">The neuron vector for the function to be derivatived at.</param>
+        /// <param name="layer">The neuron layer number, with input neurons being layer zero.</param>
+        public Matrix<double> Activate(Matrix<double> neurons, int layer)
         {
             return neurons.Map((x) => Trig.Tanh(x));
         }

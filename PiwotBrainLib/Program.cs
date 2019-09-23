@@ -28,29 +28,32 @@ namespace PiwotBrainLib
             doGo = true;
             foofoo = false;
 
-            Brain b = new Brain(1, 8, 1);
-
-            Learner l = new Learner()
+            LearningBrain l = new LearningBrain(2, new int[] {4, 8, 4 }, 1)
             {
-                Brain = b,
-                DataExtractor = (i, j) => { double x = rng.NextDouble(); return (Matrix<double>.Build.Dense(1, 1, x), Matrix<double>.Build.Dense(1, 1, FuncToLearn(x))); },
-                ExampleBlockSize = 3,
-                Accuracy = 10
+                DataExtractor = (i, j) => 
+                {
+                    double x = rng.NextDouble();
+                    double r = rng.NextDouble();
+                    return (Matrix<double>.Build.Dense(2, 1, (a, b)=>a==0? x : r), Matrix<double>.Build.Dense(1, 1, FuncToLearn(x, r)));
+                },
+                ExampleBlockSize = 1,
+                Accuracy = 1
                 
             };
             Stopwatch sw = new Stopwatch();
-            sw.Start();
-            do
-            {
-                for(int i = 0; i < 10000; i++)
-                    l.LearnOneBlock();
-                DrawFunc(b);
-                Console.WriteLine($"{l.ExamplesDone * 1000 / sw.ElapsedMilliseconds}".PadRight(20));
-            }while(true);
+            
+            do {
+                sw.Restart();
+                l.LearnBlocks(5000);
+                DrawFunc(l);
+                sw.Stop();
+                Console.WriteLine($"{l.BlocksDone}".PadRight(20));
+                Console.WriteLine($"{sw.ElapsedMilliseconds}".PadRight(20));
+            } while(true);
         }
         static double FuncToLearn(double x)
         {
-            return (Math.Sin(Math.PI * 4 * (x)) + 1) / 2;
+            //return (Math.Sin(Math.PI * 4 * (x)) + 1) / 2;
             //return x * x;
             //return x * 16 % 2 > 1 ? 1 : 0;
             /*if(x > 0.5)
@@ -66,9 +69,16 @@ namespace PiwotBrainLib
                 return x;
             }*/
             //return (x * 10 % 2) / 2;
+            return x;
         }
 
-        static void LearnFunction(Brain b)
+        static double FuncToLearn(double x, double y)
+        {
+            
+            return ((x + y) * 2 % 2) / 2;
+        }
+
+        static void LearnFunction(BrainCore b)
         {
             long counter = 0;
             int blockCounter = 0;
@@ -135,9 +145,9 @@ namespace PiwotBrainLib
             } while (!doFinish);
         }
 
-        static void DrawFunc(Brain b)
+        static void DrawFunc(BrainCore b)
         {
-            Vector<double> v2 = Vector<double>.Build.Dense(1);
+            Vector<double> v2 = Vector<double>.Build.Dense(2);
             Console.SetCursorPosition(0, 0);
             int sizex = 160, sizey = 60;
             int xpos;
@@ -148,6 +158,7 @@ namespace PiwotBrainLib
             for (int i = 0; i < sizex; i++)
             {
                 v2[0] = ((double)i / sizex);
+                v2[1] = ((double)((LearningBrain)b).BlocksDone / 100000.0)%1;
                 values[i] = b.Calculate(v2)[0] * sizey;
                 //values[i] = FuncToLearn((double)i / sizex) * sizey;
             }
