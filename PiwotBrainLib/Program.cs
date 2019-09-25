@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Text;
 using System.Threading;
 using MathNet.Numerics.LinearAlgebra;
+using System.IO;
 
 namespace PiwotBrainLib
 {
@@ -12,15 +13,18 @@ namespace PiwotBrainLib
         static bool doGo;
         static bool foofoo;
         static bool doFinish;
+        static int hAxis = 0;
+        static int vAxis = 99;
         static Random rng;
         static Stopwatch totalTime;
+        static LearningBrain l;
         static void Main(string[] args)
         {
             Console.SetWindowSize(200, 63);
             Console.CursorVisible = false;
             Console.OutputEncoding = Encoding.UTF8;
             rng = new Random(DateTime.Now.Millisecond);
-            Thread t = new Thread(ToggleClaculation);
+            Thread t = new Thread(AsyncInputChecker);
             t.Start();
             totalTime = new Stopwatch();
             totalTime.Start();
@@ -28,31 +32,76 @@ namespace PiwotBrainLib
             doGo = true;
             foofoo = false;
 
-            LearningBrain l = new LearningBrain(2, new int[] {4, 8, 4 }, 1)
+            l = new LearningBrain(1, new int[] { 12 }, 1)
             {
-                DataExtractor = (i, j) => 
+                DataExtractor = (i) => 
                 {
                     double x = rng.NextDouble();
                     double r = rng.NextDouble();
-                    return (Matrix<double>.Build.Dense(2, 1, (a, b)=>a==0? x : r), Matrix<double>.Build.Dense(1, 1, FuncToLearn(x, r)));
+                    double z = rng.NextDouble();
+                    return (Matrix<double>.Build.Dense(1, 1, (rows, cols)=> x), Matrix<double>.Build.Dense(1, 1, FuncToLearn(x)));
                 },
-                ExampleBlockSize = 1,
-                Accuracy = 1
+                ExampleBlockSize = 2,
+                Accuracy = 10
                 
             };
             Stopwatch sw = new Stopwatch();
-            
+            l.SaveToFile(Directory.GetCurrentDirectory(), "musk");
+            BrainCore b = new BrainCore("musk.txt");
             do {
                 sw.Restart();
-                l.LearnBlocks(5000);
-                DrawFunc(l);
+                if (doGo)
+                {
+                    DrawFunc(l);
+                    l.LearnBlocks(5000);
+                }
+                else
+                {
+                    DrawFunc(b);
+                    Thread.Sleep(50);
+                }
+                
                 sw.Stop();
                 Console.WriteLine($"{l.BlocksDone}".PadRight(20));
                 Console.WriteLine($"{sw.ElapsedMilliseconds}".PadRight(20));
             } while(true);
+
+        }
+
+        static void AsyncInputChecker()
+        {
+            ConsoleKey key;
+            do
+            {
+                key = Console.ReadKey(true).Key;
+                switch(key)
+                {
+                    case ConsoleKey.Spacebar:
+                        doGo = !doGo;
+                        break;
+                    case ConsoleKey.LeftArrow:
+                        hAxis--;
+                        break;
+                    case ConsoleKey.RightArrow:
+                        hAxis++;
+                        break;
+                    case ConsoleKey.DownArrow:
+                        vAxis--;
+                        break;
+                    case ConsoleKey.UpArrow:
+                        vAxis++;
+                        break;
+                    case ConsoleKey.S:
+                        if (!doGo)
+                            l.SaveToFile(Directory.GetCurrentDirectory(), "musk");
+                        break;
+                }
+
+            } while (key != ConsoleKey.Escape);
         }
         static double FuncToLearn(double x)
         {
+            return (Math.Sin(Math.PI * 2 * (x-0.25)) + 1) / 2;
             //return (Math.Sin(Math.PI * 4 * (x)) + 1) / 2;
             //return x * x;
             //return x * 16 % 2 > 1 ? 1 : 0;
@@ -69,13 +118,19 @@ namespace PiwotBrainLib
                 return x;
             }*/
             //return (x * 10 % 2) / 2;
-            return x;
+            //return x;
         }
 
         static double FuncToLearn(double x, double y)
         {
-            
+
             return ((x + y) * 2 % 2) / 2;
+        }
+
+        static double FuncToLearn(double x, double y, double z)
+        {
+            x = ((x + y) * 2 % 2) / 2;
+            return x > z ? z : x;
         }
 
         static void LearnFunction(BrainCore b)
@@ -147,7 +202,7 @@ namespace PiwotBrainLib
 
         static void DrawFunc(BrainCore b)
         {
-            Vector<double> v2 = Vector<double>.Build.Dense(2);
+            Vector<double> v2 = Vector<double>.Build.Dense(1);
             Console.SetCursorPosition(0, 0);
             int sizex = 160, sizey = 60;
             int xpos;
@@ -158,7 +213,8 @@ namespace PiwotBrainLib
             for (int i = 0; i < sizex; i++)
             {
                 v2[0] = ((double)i / sizex);
-                v2[1] = ((double)((LearningBrain)b).BlocksDone / 100000.0)%1;
+                //v2[1] = ((double)hAxis / 100.0) % 1;
+                //v2[2] = ((double)vAxis / 100.0) % 1;
                 values[i] = b.Calculate(v2)[0] * sizey;
                 //values[i] = FuncToLearn((double)i / sizex) * sizey;
             }
@@ -187,30 +243,6 @@ namespace PiwotBrainLib
                 }
                 Console.WriteLine(str);
             }
-        }
-        static void ToggleClaculation()
-        {
-            ConsoleKey key;
-            do
-            {
-                key = Console.ReadKey(true).Key;
-                if (key == ConsoleKey.Spacebar)
-                {
-                    doGo = !doGo;
-
-                    if (doGo)
-                    {
-                        totalTime.Start();
-                        foofoo = !foofoo;
-                    }
-                    else
-                        totalTime.Stop();
-                }
-                if (key == ConsoleKey.Escape)
-                {
-                    doFinish = true;
-                }
-            } while (true);
         }
     }
 }

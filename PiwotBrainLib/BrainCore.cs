@@ -1,15 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using MathNet.Numerics;
+using System.IO;
 using MathNet.Numerics.LinearAlgebra;
 
 namespace PiwotBrainLib
 {
-    class BrainCore
+    class BrainCore: ICloneable
     {
+        static protected string extention = ".txt";
         protected readonly MathNet.Numerics.Distributions.IContinuousDistribution distribution = new MathNet.Numerics.Distributions.Normal();
         protected INeuronActivation neuronActivation = new LogisticActivation();
 
@@ -61,6 +58,16 @@ namespace PiwotBrainLib
             SetupLayerCounts(inputNeurons, hiddenNeurons, outputNeurons);
             BuildBrain();
         }
+
+        /// <summary>
+        /// Uses saved BrainCore to create new instance.
+        /// </summary>
+        /// <param name="path">Path to saved BrainCore.</param>
+        public BrainCore(string path)
+        {
+
+            LoadFromFile(path);
+        }
         /// <summary>
         /// Uses existing brain to create new one.
         /// </summary>
@@ -86,12 +93,10 @@ namespace PiwotBrainLib
             {
                 throw new ArgumentNullException("hiddenNeurons");
             }
-
             if (inputNeurons < 1)
             {
                 throw new ArgumentOutOfRangeException("inputNeurons");
             }
-
             if (outputNeurons < 1)
             {
                 throw new ArgumentOutOfRangeException("outputNeurons");
@@ -185,6 +190,155 @@ namespace PiwotBrainLib
                 frame[i] = Matrix<double>.Build.Dense(layerCounts[i + 1], 1);
             }
             return frame;
+        }
+
+        public object Clone()
+        {
+            return new BrainCore(this);
+        }
+
+        public BrainCore ExtractCore()
+        {
+            return new BrainCore(this);
+        }
+
+
+        /// <summary>
+        /// Saves the brain in a new file in a specified folder.
+        /// </summary>
+        /// <param name="path">The path to the target folder.</param>
+        /// <param name="name">The name of the new file.</param>
+        public void SaveToFile(string path, string name)
+        {
+            StreamWriter sw = new StreamWriter($"{path}{(path.Length > 0 ? "\\" : "")}{name}{extention}");
+            string line = "";
+            int contSum = 17;
+            for(int i = 0; i < layerCounts.Length; i++)
+            {
+                contSum *= layerCounts[i];
+            }
+            contSum *= DateTime.Now.Millisecond;
+            contSum %= 94;
+            sw.WriteLine((char)(32 + contSum));
+            for (int i = 0; i < layerCounts.Length; i++)
+            {
+                line += $"{layerCounts[i]}";
+                if (i + 1 <= layerCounts.Length)
+                    line += ' ';
+            }
+            sw.WriteLine(Encode(line, contSum));
+
+            for (int i = 0; i < synapsLayerCount; i++)
+            {
+                
+                for (int r = 0; r < synapses[i].RowCount; r++)
+                {
+                    line = "";
+                    for (int c = 0; c < synapses[i].ColumnCount; c++)
+                    {
+                        line += $"{synapses[i][r, c]} ";
+                    }
+                    line += $"{biases[i][r, 0]}";
+                    sw.WriteLine(Encode(line, contSum));
+                }
+                
+            }
+
+            sw.Close();
+        }
+
+        protected string Encode(string str, int val)
+        {
+            char[] cStr = str.ToCharArray();
+            for (int i = 0; i < cStr.Length; i++)
+            {
+                if (cStr[i] != '\n')
+                    cStr[i]++;
+                //cStr[i] = (char)((cStr[i] - 32 + val) % 94 + 32);
+                //val += val;
+                //val %= 94;
+            }
+            return new string(cStr);
+        }
+
+        protected string Decode(string str, int val)
+        {
+            char[] cStr = str.ToCharArray();
+            for (int i = 0; i < cStr.Length; i++)
+            {
+                if (cStr[i] != '\n')
+                    cStr[i]--;
+                    //cStr[i] = (char)((cStr[i] - 32 + 94 - val) % 94 + 32);
+                //val += val;
+                //val %= 94;
+            }
+            Console.WriteLine(str);
+            str = new string(cStr);
+            Console.WriteLine(str);
+            return str;
+        }
+
+
+
+        protected void LoadFromFile(string path)
+        {
+            if (!File.Exists(path))
+            {
+                throw new FileNotFoundException();
+            }
+            StreamReader sw = new StreamReader(path);
+            int contVal = sw.ReadLine()[0]-32;
+            try
+            {
+                string line = Decode(sw.ReadLine(), contVal);
+                string[] splitedLine = line.Split(' ');
+                layerCounts = new int[splitedLine.Length];
+
+                for (int i = 0; i < splitedLine.Length; i++)
+                {
+                    if (!int.TryParse(splitedLine[i], out layerCounts[i]))
+                    {
+                        throw new FormatException("Cannot load layer counts.");
+                    }
+                }
+
+                int[] hiddenNeurons = new int[layerCounts.Length - 2];
+                for (int i = 0; i < hiddenNeurons.Length;)
+                {
+                    hiddenNeurons[i] = layerCounts[++i];
+                }
+                SetupLayerCounts(layerCounts[0], hiddenNeurons, layerCounts[layerCounts.Length - 1]);
+                BuildBrain();
+                double val;
+
+                for (int i = 0; i < synapsLayerCount; i++)
+                {
+                    
+                    for (int r = 0; r < synapses[i].RowCount; r++)
+                    {
+                        line = Decode(sw.ReadLine(), contVal);
+                        splitedLine = line.Split(' ');
+                        for (int c = 0; c < synapses[i].ColumnCount; c++)
+                        {
+                            if (!double.TryParse(splitedLine[c], out val))
+                            {
+                                throw new FormatException($"Cannot load synaps in position [{i},{r},{c}].");
+                            }
+                            synapses[i][r, c] = val;
+                        }
+                        if (!double.TryParse(splitedLine[synapses[i].ColumnCount], out val))
+                        {
+                            throw new FormatException($"Cannot load bias in position [{i},{r}].");
+                        }
+                        biases[i][r, 0] = val;
+                    }
+                }
+                sw.Close();
+            }
+            catch(Exception e)
+            {
+                throw new Exception("The file is corrupted", e);
+            }
         }
     }
 }

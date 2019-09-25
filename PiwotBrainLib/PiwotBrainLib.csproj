@@ -50,10 +50,8 @@
   <ItemGroup>
     <Compile Include="BrainCore.cs" />
     <Compile Include="InputNormalization.cs" />
-    <Compile Include="Learner.cs" />
     <Compile Include="Activations.cs" />
     <Compile Include="LearningBrain.cs" />
-    <Compile Include="Lesson.cs" />
     <Compile Include="OpenBrain.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

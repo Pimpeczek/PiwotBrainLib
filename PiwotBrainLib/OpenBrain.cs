@@ -17,20 +17,26 @@ namespace PiwotBrainLib
         Matrix<double> neuronTailProduct;
         Matrix<double> onesRow;
 
+        /// <param name="inputNeurons">Number of input parameters.</param>
+        /// <param name="hiddenNeurons">Number of neurons on the hidden layer.</param>
+        /// <param name="outputNeurons">Number of output neurons.</param>
         public OpenBrain(int inputNeurons, int hiddenNeurons, int outputNeurons) : base(inputNeurons, hiddenNeurons, outputNeurons)
         {
             BuildOpenBrain();
         }
 
+        /// <param name="inputNeurons">Number of input parameters.</param>
+        /// <param name="hiddenNeurons">Array containing number of neurons on each hidden layer.</param>
+        /// <param name="outputNeurons">Number of output neurons.</param>
         public OpenBrain(int inputNeurons, int[] hiddenNeurons, int outputNeurons) : base(inputNeurons, hiddenNeurons, outputNeurons)
         {
             BuildOpenBrain();
         }
 
         /// <summary>
-        /// Uses already existing brain to 
+        /// Uses already existing brain to build this instance of OpenBrain.
         /// </summary>
-        /// <param name="brainCore"></param>
+        /// <param name="brainCore">Brain to be used as a base.</param>
         public OpenBrain(BrainCore brainCore) : base(brainCore)
         {
             BuildOpenBrain();
@@ -44,6 +50,11 @@ namespace PiwotBrainLib
             biasDerivatives = new Matrix<double>[synapsLayerCount];
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="synapsGradient">Array of synaps gradient matrices, starting from the deepest layer.</param>
+        /// <param name="biasGradient">Array of bias gradient matrices, starting from the deepest layer.</param>
         public void ApplyGradients(Matrix<double>[] synapsGradient, Matrix<double>[] biasGradient)
         {
             for (int i = synapsLayerCount - 1; i >= 0; i--)
@@ -53,6 +64,11 @@ namespace PiwotBrainLib
             }
         }
 
+        /// <summary>
+        /// Returns gradients of all synapses and biases as an array of matrices.
+        /// </summary>
+        /// <param name="input">The learning data formated to a vector.</param>
+        /// <param name="output">The expected output data formated to a vector.</param>
         public (Matrix<double>[], Matrix<double>[], double) CalculateGradients(Vector<double> input, Vector<double> output)
         {
             if (input == null)
@@ -67,6 +83,12 @@ namespace PiwotBrainLib
             return CalculateGradients(input.ToColumnMatrix(), output.ToColumnMatrix());
         }
 
+
+        /// <summary>
+        /// Returns gradients of all synapses and biases and the MeanSquaredError a touple of as two arrays of matrices and a double.
+        /// </summary>
+        /// <param name="input">The learning data formated to column matrix.</param>
+        /// <param name="output">The expected output data formated to column matrix.</param>
         public (Matrix<double>[], Matrix<double>[], double) CalculateGradients(Matrix<double> input, Matrix<double> output)
         {
             if (input == null)
@@ -92,12 +114,14 @@ namespace PiwotBrainLib
             activeNeurons[0] = input;
             rawNeurons[0] = input;
             double error;
+
             for (int i = 1; i < neuronLayerCount; i++)
             {
                 rawNeurons[i] = synapses[i - 1] * activeNeurons[i - 1] + biases[i - 1];
                 derivedNeurons[i] = neuronActivation.Derive(rawNeurons[i], i);
                 activeNeurons[i] = neuronActivation.Activate(rawNeurons[i], i);
             }
+
             costDerivatives = (activeNeurons[synapsLayerCount] - output) * 2;
             error = (activeNeurons[synapsLayerCount] - output).Map((x) => x * x).ColumnSums()[0];
             synapsDerivatives[synapsLayerCount - 1] = costDerivatives;
