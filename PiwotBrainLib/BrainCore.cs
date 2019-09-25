@@ -223,7 +223,7 @@ namespace PiwotBrainLib
             for (int i = 0; i < layerCounts.Length; i++)
             {
                 line += $"{layerCounts[i]}";
-                if (i + 1 <= layerCounts.Length)
+                if (i + 1 < layerCounts.Length)
                     line += ' ';
             }
             sw.WriteLine(Encode(line, contSum));
@@ -247,16 +247,16 @@ namespace PiwotBrainLib
             sw.Close();
         }
 
+
         protected string Encode(string str, int val)
         {
             char[] cStr = str.ToCharArray();
             for (int i = 0; i < cStr.Length; i++)
             {
                 if (cStr[i] != '\n')
-                    cStr[i]++;
-                //cStr[i] = (char)((cStr[i] - 32 + val) % 94 + 32);
-                //val += val;
-                //val %= 94;
+                    cStr[i] = (char)((cStr[i] - 32 + val) % 94 + 32);
+                val += val;
+                val %= 94;
             }
             return new string(cStr);
         }
@@ -267,15 +267,11 @@ namespace PiwotBrainLib
             for (int i = 0; i < cStr.Length; i++)
             {
                 if (cStr[i] != '\n')
-                    cStr[i]--;
-                    //cStr[i] = (char)((cStr[i] - 32 + 94 - val) % 94 + 32);
-                //val += val;
-                //val %= 94;
+                    cStr[i] = (char)((cStr[i] - 32 + 94 - val) % 94 + 32);
+                val += val;
+                val %= 94;
             }
-            Console.WriteLine(str);
-            str = new string(cStr);
-            Console.WriteLine(str);
-            return str;
+            return new string(cStr);
         }
 
 
