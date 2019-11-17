@@ -87,6 +87,26 @@ namespace PiwotBrainLib
             neuronActivation = baseBrain.neuronActivation;
         }
 
+        public BrainCore(BrainCore baseBrain, int fromLayer, int layerCount)
+        {
+            if (fromLayer + layerCount > baseBrain.layerCounts.Length)
+                throw new ArgumentOutOfRangeException();
+            if (fromLayer < 0 || layerCount < 1)
+                throw new ArgumentOutOfRangeException();
+
+            biases = PiwotToolsLib.Data.Arrays.BuildSubArray(baseBrain.biases, fromLayer, layerCount);
+            synapses = PiwotToolsLib.Data.Arrays.BuildSubArray(baseBrain.synapses, fromLayer, layerCount);
+            layerCounts = PiwotToolsLib.Data.Arrays.BuildSubArray(baseBrain.layerCounts, fromLayer, layerCount);
+            int[] hiddenNeurons = new int[layerCounts.Length - 2];
+            for (int i = 0; i < hiddenNeurons.Length;)
+            {
+                hiddenNeurons[i] = layerCounts[++i];
+            }
+            SetupLayerCounts(layerCounts[0], hiddenNeurons, layerCounts[layerCounts.Length - 1]);
+            activeNeurons = new Matrix<double>[neuronLayerCount];
+            neuronActivation = baseBrain.neuronActivation;
+        }
+
         protected void SetupLayerCounts(int inputNeurons, int[] hiddenNeurons, int outputNeurons)
         {
             if (hiddenNeurons == null)
@@ -200,6 +220,11 @@ namespace PiwotBrainLib
         public BrainCore ExtractCore()
         {
             return new BrainCore(this);
+        }
+
+        public BrainCore ExtractPartOfCore(int fromLayer, int layerCount)
+        {
+            return new BrainCore(this, fromLayer, layerCount);
         }
 
 
