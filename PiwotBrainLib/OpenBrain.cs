@@ -6,7 +6,7 @@ using MathNet.Numerics.LinearAlgebra;
 
 namespace PiwotBrainLib
 {
-    class OpenBrain : BrainCore
+    public class OpenBrain : BrainCore
     {
 
         protected Matrix<double>[] derivedNeurons;

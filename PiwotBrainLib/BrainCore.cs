@@ -4,7 +4,7 @@ using MathNet.Numerics.LinearAlgebra;
 
 namespace PiwotBrainLib
 {
-    class BrainCore: ICloneable
+    public class BrainCore: ICloneable
     {
         static protected string extention = ".txt";
         protected readonly MathNet.Numerics.Distributions.IContinuousDistribution distribution = new MathNet.Numerics.Distributions.Normal();

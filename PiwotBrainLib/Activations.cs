@@ -12,7 +12,7 @@ namespace PiwotBrainLib
     /// <summary>
     /// Used in the Brain to normalize neuron values and calculate its derivatives.
     /// </summary>
-    interface INeuronActivation
+    public interface INeuronActivation
     {
         /// <summary>
         /// Normalizes given neuron matrix values in a class specific way.
@@ -32,7 +32,7 @@ namespace PiwotBrainLib
     /// <summary>
     /// Is synonymous with no activation function. Derivative is always 1.
     /// </summary>
-    class RawActivation : INeuronActivation
+    public class RawActivation : INeuronActivation
     {
         /// <summary>
         /// Returns raw neurons.
@@ -58,7 +58,7 @@ namespace PiwotBrainLib
     /// <summary>
     /// The logistic(sigmoid) activation. Squeezes values from -∞ to ∞ into (0; 1) range.
     /// </summary>
-    class LogisticActivation : INeuronActivation
+    public class LogisticActivation : INeuronActivation
     {
         //https://calculus.subwiki.org/wiki/Logistic_function
         /// <summary>
@@ -85,7 +85,7 @@ namespace PiwotBrainLib
     /// <summary>
     /// The Hyperbolic Secant function(Sech) activation. Its a bell shaped function where f(0)=1 and infinities converge to 0.
     /// </summary>
-    class SechActivation : INeuronActivation
+    public class SechActivation : INeuronActivation
     {
         //https://en.wikipedia.org/wiki/Hyperbolic_function
         /// <summary>
@@ -113,7 +113,7 @@ namespace PiwotBrainLib
     /// <summary>
     /// The Hyperbolic Tangent function(Tanh) activation.
     /// </summary>
-    class TanhActivation : INeuronActivation
+    public class TanhActivation : INeuronActivation
     {
         //https://en.wikipedia.org/wiki/Hyperbolic_function
         /// <summary>

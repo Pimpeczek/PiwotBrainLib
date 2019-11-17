@@ -7,7 +7,7 @@ using MathNet.Numerics.LinearAlgebra;
 
 namespace PiwotBrainLib
 {
-    class LearningBrain : OpenBrain
+    public class LearningBrain : OpenBrain
     {
        
         protected Matrix<double>[] synapsGradient;
