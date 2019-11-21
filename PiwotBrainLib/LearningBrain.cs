@@ -9,7 +9,7 @@ namespace PiwotBrainLib
 {
     public class LearningBrain : OpenBrain
     {
-       
+        #region Variables
         protected Matrix<double>[] synapsGradient;
         protected Matrix<double>[] biasGradient;
         protected (Matrix<double>[], Matrix<double>[], double) gradientTouple;
@@ -81,7 +81,7 @@ namespace PiwotBrainLib
             }
         }
 
-        protected double accuracy = 10;
+        protected double accuracy = 1000;
 
         /// <summary>
         /// The indicator of how accurate the calculations are. For higher values the network will be able to get closer to the local minimum at a cost of learning speed.
@@ -124,6 +124,7 @@ namespace PiwotBrainLib
         }
 
         protected Queue requests = Queue.Synchronized(new Queue());
+        
 
         /// <summary>
         /// The function used to extract data from outside source.
@@ -133,6 +134,9 @@ namespace PiwotBrainLib
         /// The function to be invoked after each done block.
         /// </summary>
         public Action<LearningBrain> BlockDoneAction { get; set; }
+        #endregion
+
+        #region Constructors
 
         /// <param name="inputNeurons">Number of input parameters.</param>
         /// <param name="hiddenNeurons">Number of neurons on the hidden layer.</param>
@@ -169,14 +173,18 @@ namespace PiwotBrainLib
 
         }
 
+        #endregion
 
+        #region Setup
         protected void SetupLearningBrain()
         {
             errors = Vector<double>.Build.Dense(errorMemoryLenght);
             synapsGradientMomentum = GetSynapsGradientFrame();
             biasGradientMomentum = GetBiasGradientFrame();
         }
+        #endregion
 
+        #region Learning
         /// <summary>
         /// Teaches the BrainCore on a given number of exaples. Uses DataExtractor to extract learning data.
         /// </summary>
@@ -275,7 +283,9 @@ namespace PiwotBrainLib
             }
             return MeanSquaredError;
         }
+        #endregion
 
+        #region Calculations
         /// <summary>
         /// Calculates and applies gradients for each example in current block. Returns MeanSquaredError.
         /// </summary>
@@ -314,7 +324,7 @@ namespace PiwotBrainLib
             return MeanSquaredError;
         }
 
-
+        #endregion
     }
 }
 

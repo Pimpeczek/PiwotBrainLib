@@ -8,7 +8,7 @@ namespace PiwotBrainLib
 {
     public class OpenBrain : BrainCore
     {
-
+        #region Variables
         protected Matrix<double>[] derivedNeurons;
         protected Matrix<double>[] rawNeurons;
         Matrix<double>[] synapsDerivatives;
@@ -16,7 +16,9 @@ namespace PiwotBrainLib
         Matrix<double> costDerivatives;
         Matrix<double> neuronTailProduct;
         Matrix<double> onesRow;
+        #endregion
 
+        #region Constructors
         /// <param name="inputNeurons">Number of input parameters.</param>
         /// <param name="hiddenNeurons">Number of neurons on the hidden layer.</param>
         /// <param name="outputNeurons">Number of output neurons.</param>
@@ -41,7 +43,8 @@ namespace PiwotBrainLib
         {
             BuildOpenBrain();
         }
-
+        #endregion
+        #region Setup
         protected void BuildOpenBrain()
         {
             derivedNeurons = new Matrix<double>[neuronLayerCount];
@@ -49,7 +52,8 @@ namespace PiwotBrainLib
             synapsDerivatives = new Matrix<double>[synapsLayerCount];
             biasDerivatives = new Matrix<double>[synapsLayerCount];
         }
-
+        #endregion
+        #region Calculations
         /// <summary>
         /// 
         /// </summary>
@@ -145,6 +149,6 @@ namespace PiwotBrainLib
             }
             return (synapsDerivatives, biasDerivatives, error);
         }
-
+        #endregion
     }
 }

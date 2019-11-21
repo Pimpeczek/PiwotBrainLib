@@ -6,6 +6,7 @@ namespace PiwotBrainLib
 {
     public class BrainCore: ICloneable
     {
+        #region Variables
         static protected string extention = ".txt";
         protected readonly MathNet.Numerics.Distributions.IContinuousDistribution distribution = new MathNet.Numerics.Distributions.Normal();
         protected INeuronActivation neuronActivation = new LogisticActivation();
@@ -39,6 +40,9 @@ namespace PiwotBrainLib
         protected Matrix<double>[] biases;
         protected Matrix<double>[] synapses;
 
+        #endregion
+
+        #region Constructors
         /// <param name="inputNeurons">Number of input parameters.</param>
         /// <param name="hiddenNeurons">Number of neurons on the hidden layer.</param>
         /// <param name="outputNeurons">Number of output neurons.</param>
@@ -106,7 +110,9 @@ namespace PiwotBrainLib
             activeNeurons = new Matrix<double>[neuronLayerCount];
             neuronActivation = baseBrain.neuronActivation;
         }
+        #endregion
 
+        #region Setup
         protected void SetupLayerCounts(int inputNeurons, int[] hiddenNeurons, int outputNeurons)
         {
             if (hiddenNeurons == null)
@@ -167,7 +173,9 @@ namespace PiwotBrainLib
                 synapses[i] = Matrix<double>.Build.Random(layerCounts[i + 1], layerCounts[i], distribution);
             }
         }
+        #endregion
 
+        #region Calculations
         /// <summary>
         /// Performs learned function on a given input and returns the result.
         /// </summary>
@@ -184,7 +192,9 @@ namespace PiwotBrainLib
             return activeNeurons[synapsLayerCount].Column(0);
         }
 
+        #endregion
 
+        #region Out frames
         /// <summary>
         /// Returns empty synaps array.
         /// </summary>
@@ -211,7 +221,9 @@ namespace PiwotBrainLib
             }
             return frame;
         }
+        #endregion
 
+        #region Extracting
         public object Clone()
         {
             return new BrainCore(this);
@@ -227,6 +239,9 @@ namespace PiwotBrainLib
             return new BrainCore(this, fromLayer, layerCount);
         }
 
+        #endregion
+
+        #region Save to file
 
         /// <summary>
         /// Saves the brain in a new file in a specified folder.
@@ -361,5 +376,6 @@ namespace PiwotBrainLib
                 throw new Exception("The file is corrupted", e);
             }
         }
+        #endregion
     }
 }
