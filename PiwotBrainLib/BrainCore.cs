@@ -241,6 +241,54 @@ namespace PiwotBrainLib
 
         #endregion
 
+        #region Expanding and shrinking
+
+        public void ExpandLayer(int layer, int delta)
+        {
+            if (delta < 1)
+                return;
+            if (layer > 0)
+            {
+                biases[layer - 1] = biases[layer - 1].InsertRow(0, Vector<double>.Build.Dense(1, 0));
+                Console.WriteLine(layerCounts[layer - 1]);
+                Console.WriteLine(synapses[layer - 1]);
+                synapses[layer - 1] = synapses[layer - 1].InsertRow(0, Vector<double>.Build.Dense(layerCounts[layer - 1], 0));
+
+            }
+            if (layer < layerCounts.Length - 1)
+            {
+                Console.WriteLine(layerCounts[layer]);
+                Console.WriteLine(synapses[layer]);
+                synapses[layer] = synapses[layer].InsertColumn(0, Vector<double>.Build.Dense(layerCounts[layer + 1], 0));
+            }
+            layerCounts[layer] += delta;
+        }
+
+        public void ShrinkLayer(int layer, int delta)
+        {
+            if (delta < 1)
+                return;
+
+            if (layer > 0)
+            {
+                biases[layer - 1] = biases[layer - 1].InsertRow(0, Vector<double>.Build.Dense(1, 0));
+                Console.WriteLine(layerCounts[layer - 1]);
+                Console.WriteLine(synapses[layer - 1]);
+                synapses[layer - 1] = synapses[layer - 1].InsertRow(0, Vector<double>.Build.Dense(layerCounts[layer - 1], 0));
+
+            }
+            
+            if (layer < layerCounts.Length - 1)
+            {
+                Console.WriteLine(layerCounts[layer]);
+                Console.WriteLine(synapses[layer]);
+                synapses[layer] = synapses[layer].InsertColumn(0, Vector<double>.Build.Dense(layerCounts[layer + 1], 0));
+            }
+            layerCounts[layer] += delta;
+        }
+
+        #endregion
+
         #region Save to file
 
         /// <summary>
@@ -266,7 +314,7 @@ namespace PiwotBrainLib
                 if (i + 1 < layerCounts.Length)
                     line += ' ';
             }
-            sw.WriteLine(Encode(line, contSum));
+            sw.WriteLine(line);// Encode(line, contSum));
 
             for (int i = 0; i < synapsLayerCount; i++)
             {
@@ -279,7 +327,7 @@ namespace PiwotBrainLib
                         line += $"{synapses[i][r, c]} ";
                     }
                     line += $"{biases[i][r, 0]}";
-                    sw.WriteLine(Encode(line, contSum));
+                    sw.WriteLine(line);// Encode(line, contSum));
                 }
                 
             }
@@ -326,7 +374,7 @@ namespace PiwotBrainLib
             int contVal = sw.ReadLine()[0]-32;
             try
             {
-                string line = Decode(sw.ReadLine(), contVal);
+                string line = sw.ReadLine();//Decode(sw.ReadLine(), contVal);
                 string[] splitedLine = line.Split(' ');
                 layerCounts = new int[splitedLine.Length];
 
@@ -352,7 +400,7 @@ namespace PiwotBrainLib
                     
                     for (int r = 0; r < synapses[i].RowCount; r++)
                     {
-                        line = Decode(sw.ReadLine(), contVal);
+                        line = sw.ReadLine();// Decode(sw.ReadLine(), contVal);
                         splitedLine = line.Split(' ');
                         for (int c = 0; c < synapses[i].ColumnCount; c++)
                         {

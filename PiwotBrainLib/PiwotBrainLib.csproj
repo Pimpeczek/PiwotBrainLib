@@ -5,7 +5,7 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{B4D2046C-20BB-415E-A1F9-52AAE843005D}</ProjectGuid>
-    <OutputType>Library</OutputType>
+    <OutputType>Exe</OutputType>
     <RootNamespace>PiwotBrainLib</RootNamespace>
     <AssemblyName>PiwotBrainLib</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
@@ -59,6 +59,7 @@
   <ItemGroup>
     <Compile Include="BrainCore.cs" />
     <Compile Include="Activations.cs" />
+    <Compile Include="Class1.cs" />
     <Compile Include="LearningBrain.cs" />
     <Compile Include="OpenBrain.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
