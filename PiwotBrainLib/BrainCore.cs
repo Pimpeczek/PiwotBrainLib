@@ -287,6 +287,47 @@ namespace PiwotBrainLib
             layerCounts[layer] += delta;
         }
 
+        /// <summary>
+        /// Streaches a given layer by a given factor. In result each neuron and its synapses are cloned 'factor' times.
+        /// </summary>
+        /// <param name="layer">The layer to be streached.</param>
+        /// <param name="factor">The measure of how many times should every neuron get copied.</param>
+        public void StreachLayer(int layer, int factor)
+        {
+            if (factor < 2)
+                return;
+            int baseWidth;
+            Vector<double> tStrip;
+            baseWidth = layerCounts[layer];
+            if (layer > 0)
+            {
+                biases[layer - 1] = Matrix<double>.Build.Dense(baseWidth * factor, 1, (r, c) => biases[layer - 1][r / factor, c]);
+                for (int i = baseWidth - 1; i >= 0; i--)
+                {
+                    tStrip = synapses[layer - 1].Row(i);
+                    
+                    for (int f = 1; f < factor; f++)
+                    {
+                        synapses[layer - 1] = synapses[layer - 1].InsertRow(i, tStrip);
+                    }
+                }
+                Console.WriteLine(synapses[layer - 1]);
+            }
+            
+            if (layer < layerCounts.Length - 1)
+            {
+                for (int i = baseWidth - 1; i >= 0; i--)
+                {
+                    tStrip = synapses[layer].Column(i);
+                    for (int f = 1; f < factor; f++)
+                    {
+                        synapses[layer] = synapses[layer].InsertColumn(i, tStrip);
+                    }
+                }
+            }
+            layerCounts[layer] *= factor;
+        }
+
         #endregion
 
         #region Save to file
