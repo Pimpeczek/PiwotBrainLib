@@ -250,15 +250,11 @@ namespace PiwotBrainLib
             if (layer > 0)
             {
                 biases[layer - 1] = biases[layer - 1].InsertRow(0, Vector<double>.Build.Dense(1, 0));
-                Console.WriteLine(layerCounts[layer - 1]);
-                Console.WriteLine(synapses[layer - 1]);
                 synapses[layer - 1] = synapses[layer - 1].InsertRow(0, Vector<double>.Build.Dense(layerCounts[layer - 1], 0));
 
             }
             if (layer < layerCounts.Length - 1)
             {
-                Console.WriteLine(layerCounts[layer]);
-                Console.WriteLine(synapses[layer]);
                 synapses[layer] = synapses[layer].InsertColumn(0, Vector<double>.Build.Dense(layerCounts[layer + 1], 0));
             }
             layerCounts[layer] += delta;
@@ -292,38 +288,38 @@ namespace PiwotBrainLib
         /// </summary>
         /// <param name="layer">The layer to be streached.</param>
         /// <param name="factor">The measure of how many times should every neuron get copied.</param>
-        public void StreachLayer(int layer, int factor)
+        public void StreachLayer(int layer, int factor, int horisontalLen, int verticalLen)
         {
+            
             if (factor < 2)
                 return;
             int baseWidth;
             Vector<double> tStrip;
             baseWidth = layerCounts[layer];
+            if (baseWidth % horisontalLen != 0)
+                return;
+            int groupTimes = baseWidth / horisontalLen;
+            int streachLen = factor * horisontalLen;
+
             if (layer > 0)
             {
-                biases[layer - 1] = Matrix<double>.Build.Dense(baseWidth * factor, 1, (r, c) => biases[layer - 1][r / factor, c]);
-                for (int i = baseWidth - 1; i >= 0; i--)
+                
+                biases[layer - 1] = Matrix<double>.Build.Dense(baseWidth * factor, 1, (r, c) => 
                 {
-                    tStrip = synapses[layer - 1].Row(i);
-                    
-                    for (int f = 1; f < factor; f++)
-                    {
-                        synapses[layer - 1] = synapses[layer - 1].InsertRow(i, tStrip);
-                    }
-                }
-                Console.WriteLine(synapses[layer - 1]);
+                    return biases[layer - 1][(r / streachLen) * groupLen + r % groupLen, c];
+                });
+                synapses[layer - 1] = Matrix<double>.Build.Dense(baseWidth * factor, layerCounts[layer-1], (r, c) =>
+                {
+                    return synapses[layer - 1][(r / streachLen) * groupLen + r % groupLen, c];
+                });
             }
             
             if (layer < layerCounts.Length - 1)
             {
-                for (int i = baseWidth - 1; i >= 0; i--)
+                synapses[layer] = Matrix<double>.Build.Dense(synapses[layer].RowCount, baseWidth * factor, (r, c) =>
                 {
-                    tStrip = synapses[layer].Column(i);
-                    for (int f = 1; f < factor; f++)
-                    {
-                        synapses[layer] = synapses[layer].InsertColumn(i, tStrip);
-                    }
-                }
+                    return synapses[layer][r, (c / streachLen) * groupLen + c % groupLen];
+                });
             }
             layerCounts[layer] *= factor;
         }
