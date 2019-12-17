@@ -50,7 +50,7 @@ namespace PiwotBrainLib
             derivedNeurons = new Matrix<double>[neuronLayerCount];
             rawNeurons = new Matrix<double>[neuronLayerCount];
             synapsDerivatives = new Matrix<double>[synapsLayerCount];
-            biasDerivatives = new Matrix<double>[synapsLayerCount];
+            biasDerivatives = new Matrix<double>[neuronLayerCount];
         }
         #endregion
         #region Calculations
@@ -61,6 +61,8 @@ namespace PiwotBrainLib
         /// <param name="biasGradient">Array of bias gradient matrices, starting from the deepest layer.</param>
         public void ApplyGradients(Matrix<double>[] synapsGradient, Matrix<double>[] biasGradient)
         {
+            biases[synapsLayerCount] -= biasGradient[synapsLayerCount];
+
             for (int i = synapsLayerCount - 1; i >= 0; i--)
             {
                 synapses[i] -= synapsGradient[i];
@@ -115,13 +117,14 @@ namespace PiwotBrainLib
                 throw new ArgumentException("output");
             }
 
-            activeNeurons[0] = input;
-            rawNeurons[0] = input;
+            
+            rawNeurons[0] = input + biases[0];
+            activeNeurons[0] = neuronActivation.Activate(rawNeurons[0], 0);
             double error;
 
             for (int i = 1; i < neuronLayerCount; i++)
             {
-                rawNeurons[i] = synapses[i - 1] * activeNeurons[i - 1] + biases[i - 1];
+                rawNeurons[i] = synapses[i - 1] * activeNeurons[i - 1] + biases[i];
                 derivedNeurons[i] = neuronActivation.Derive(rawNeurons[i], i);
                 activeNeurons[i] = neuronActivation.Activate(rawNeurons[i], i);
             }
@@ -136,17 +139,22 @@ namespace PiwotBrainLib
                 synapsDerivatives[layer] = synapses[layer + 1].Transpose() * synapsDerivatives[layer];
             }
             synapsDerivatives[synapsLayerCount - 1] = costDerivatives.PointwiseMultiply(derivedNeurons[synapsLayerCount]) * activeNeurons[synapsLayerCount - 1].Transpose();
-            biasDerivatives[synapsLayerCount - 1] = costDerivatives.PointwiseMultiply(derivedNeurons[synapsLayerCount]);
+            biasDerivatives[synapsLayerCount] = costDerivatives.PointwiseMultiply(derivedNeurons[synapsLayerCount]);
+
+
             for (int layer = synapsLayerCount - 2; layer >= 0; layer--)
             {
 
                 onesRow = Matrix<double>.Build.Dense(1, layerCounts[layer], 1);
                 neuronTailProduct = derivedNeurons[layer + 1] * activeNeurons[layer].Transpose();
-                biasDerivatives[layer] = synapsDerivatives[layer].PointwiseMultiply(derivedNeurons[layer + 1]);
+                biasDerivatives[layer + 1] = synapsDerivatives[layer].PointwiseMultiply(derivedNeurons[layer + 1]);
                 synapsDerivatives[layer] = synapsDerivatives[layer] * onesRow;
                 synapsDerivatives[layer] = synapsDerivatives[layer].PointwiseMultiply(neuronTailProduct);
 
             }
+
+            biasDerivatives[0] = (synapses[0].Transpose() * biasDerivatives[1]).PointwiseMultiply(derivedNeurons[0]);
+
             return (synapsDerivatives, biasDerivatives, error);
         }
         #endregion

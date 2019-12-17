@@ -302,12 +302,19 @@ namespace PiwotBrainLib
             for (int i = 1; i < exampleBlockSize; i++)
             {
                 gradientTouple = CalculateGradients(learningData[0,i], learningData[1,i]);
+
+                biasGradient[TotalSynapsLayers] += gradientTouple.Item2[TotalSynapsLayers];
+
                 for (int l = 0; l < TotalSynapsLayers; l++)
                 {
                     synapsGradient[l] += gradientTouple.Item1[l];
                     biasGradient[l] += gradientTouple.Item2[l];
                 }
             }
+
+
+            biasGradient[TotalSynapsLayers] /= (double)exampleBlockSize;
+            biasGradientMomentum[TotalSynapsLayers] = biasGradient[TotalSynapsLayers] / accuracy + biasGradientMomentum[TotalSynapsLayers] * momentum;
 
             for (int l = 0; l < TotalSynapsLayers; l++)
             {
@@ -317,6 +324,7 @@ namespace PiwotBrainLib
                 biasGradient[l] /= (double)exampleBlockSize;
                 biasGradientMomentum[l] = biasGradient[l] / accuracy + biasGradientMomentum[l] * momentum;
             }
+
             ApplyGradients(synapsGradientMomentum, biasGradientMomentum);
             BlocksDone++;
             BlockDoneAction?.Invoke(this);

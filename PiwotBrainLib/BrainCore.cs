@@ -91,7 +91,7 @@ namespace PiwotBrainLib
             neuronActivation = baseBrain.neuronActivation;
         }
 
-        public BrainCore(BrainCore baseBrain, int fromLayer, int layerCount)
+        public BrainCore(BrainCore baseBrain, int fromLayer, int layerCount)//DO POPRAWY!!! Synaps layery chyba się nei zgadzają :P
         {
             if (fromLayer + layerCount > baseBrain.layerCounts.Length)
                 throw new ArgumentOutOfRangeException();
@@ -157,7 +157,7 @@ namespace PiwotBrainLib
         {
             activeNeurons = new Matrix<double>[neuronLayerCount];
             
-            biases = new Matrix<double>[synapsLayerCount];
+            biases = new Matrix<double>[neuronLayerCount];
             synapses = new Matrix<double>[synapsLayerCount];
         }
 
@@ -166,6 +166,8 @@ namespace PiwotBrainLib
         /// </summary>
         protected void PopulateFrame()
         {
+            biases[synapsLayerCount] = Matrix<double>.Build.Random(layerCounts[synapsLayerCount], 1, distribution);
+
             for (int i = 0; i < synapsLayerCount; i++)
             {
                 biases[i] = Matrix<double>.Build.Random(layerCounts[i + 1], 1, distribution);
@@ -182,11 +184,12 @@ namespace PiwotBrainLib
         /// <param name="input">Data to be interpreted</param>
         public Vector<double> Calculate(Vector<double> input)
         {
-            activeNeurons[0] = input.ToColumnMatrix();
+            activeNeurons[0] = input.ToColumnMatrix() + biases[0];
+            activeNeurons[0] = neuronActivation.Activate(activeNeurons[0], 0);
             for (int i = 1; i < neuronLayerCount; i++)
             {
                 activeNeurons[i] = synapses[i - 1] * activeNeurons[i - 1];
-                activeNeurons[i] += biases[i - 1];
+                activeNeurons[i] += biases[i];
                 activeNeurons[i] = neuronActivation.Activate(activeNeurons[i], i);
             }
             return activeNeurons[synapsLayerCount].Column(0);
@@ -214,10 +217,10 @@ namespace PiwotBrainLib
         /// </summary>
         protected Matrix<double>[] GetBiasGradientFrame()
         {
-            Matrix<double>[] frame = new Matrix<double>[synapsLayerCount];
-            for (int i = 0; i < synapsLayerCount; i++)
+            Matrix<double>[] frame = new Matrix<double>[neuronLayerCount];
+            for (int i = 0; i < neuronLayerCount; i++)
             {
-                frame[i] = Matrix<double>.Build.Dense(layerCounts[i + 1], 1);
+                frame[i] = Matrix<double>.Build.Dense(layerCounts[i], 1);
             }
             return frame;
         }
@@ -241,9 +244,10 @@ namespace PiwotBrainLib
 
         #endregion
 
+        //DO POPRAWY BO TE BIASY ITD xD
         #region Expanding and shrinking
 
-        public void ExpandLayer(int layer, int delta)
+        public void ExpandLayer(int layer, int delta)//DO POPRAWY BO TE BIASY ITD xD
         {
             if (delta < 1)
                 return;
@@ -264,7 +268,7 @@ namespace PiwotBrainLib
             layerCounts[layer] += delta;
         }
 
-        public void ShrinkLayer(int layer, int delta)
+        public void ShrinkLayer(int layer, int delta)//DO POPRAWY BO TE BIASY ITD xD
         {
             if (delta < 1)
                 return;
@@ -292,7 +296,7 @@ namespace PiwotBrainLib
         /// </summary>
         /// <param name="layer">The layer to be streached.</param>
         /// <param name="factor">The measure of how many times should every neuron get copied.</param>
-        public void StreachLayer(int layer, int factor)
+        public void StreachLayer(int layer, int factor)//DO POPRAWY BO TE BIASY ITD xD
         {
             if (factor < 2)
                 return;
@@ -356,7 +360,12 @@ namespace PiwotBrainLib
                     line += ' ';
             }
             sw.WriteLine(line);// Encode(line, contSum));
-
+            for (int r = 0; r < layerCounts[0]; r++)
+            {
+                line = "";
+                line += $"{biases[0][r, 0]}";
+                sw.WriteLine(line);// Encode(line, contSum));
+            }
             for (int i = 0; i < synapsLayerCount; i++)
             {
                 
@@ -367,7 +376,7 @@ namespace PiwotBrainLib
                     {
                         line += $"{synapses[i][r, c]} ";
                     }
-                    line += $"{biases[i][r, 0]}";
+                    line += $"{biases[i + 1][r, 0]}";
                     sw.WriteLine(line);// Encode(line, contSum));
                 }
                 
@@ -436,6 +445,17 @@ namespace PiwotBrainLib
                 BuildBrain();
                 double val;
 
+                for (int r = 0; r < layerCounts[0]; r++)
+                {
+                    line = sw.ReadLine();// Decode(sw.ReadLine(), contVal);
+                    if (!double.TryParse(line, out val))
+                    {
+                        throw new FormatException($"Cannot load bias in position [0,{r}].");
+                    }
+                    biases[0][r, 0] = val;
+                }
+
+
                 for (int i = 0; i < synapsLayerCount; i++)
                 {
                     
@@ -453,9 +473,9 @@ namespace PiwotBrainLib
                         }
                         if (!double.TryParse(splitedLine[synapses[i].ColumnCount], out val))
                         {
-                            throw new FormatException($"Cannot load bias in position [{i},{r}].");
+                            throw new FormatException($"Cannot load bias in position [{i + 1},{r}].");
                         }
-                        biases[i][r, 0] = val;
+                        biases[i + 1][r, 0] = val;
                     }
                 }
                 sw.Close();
