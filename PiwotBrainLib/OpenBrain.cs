@@ -119,6 +119,7 @@ namespace PiwotBrainLib
 
             
             rawNeurons[0] = input + biases[0];
+            derivedNeurons[0] = neuronActivation.Derive(rawNeurons[0], 0);
             activeNeurons[0] = neuronActivation.Activate(rawNeurons[0], 0);
             double error;
 

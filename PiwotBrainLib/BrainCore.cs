@@ -170,7 +170,7 @@ namespace PiwotBrainLib
 
             for (int i = 0; i < synapsLayerCount; i++)
             {
-                biases[i] = Matrix<double>.Build.Random(layerCounts[i + 1], 1, distribution);
+                biases[i] = Matrix<double>.Build.Random(layerCounts[i], 1, distribution);
 
                 synapses[i] = Matrix<double>.Build.Random(layerCounts[i + 1], layerCounts[i], distribution);
             }
@@ -291,45 +291,50 @@ namespace PiwotBrainLib
             layerCounts[layer] += delta;
         }
 
+
         /// <summary>
         /// Streaches a given layer by a given factor. In result each neuron and its synapses are cloned 'factor' times.
         /// </summary>
         /// <param name="layer">The layer to be streached.</param>
-        /// <param name="factor">The measure of how many times should every neuron get copied.</param>
-        public void StreachLayer(int layer, int factor)//DO POPRAWY BO TE BIASY ITD xD
+        /// <param name="hFactor">The measure of how many times should every neuron get copied.</param>
+        /// <param name="vFactor">The measure of how many times should every neuron get copied.</param>
+        /// <param name="lineLenght">The measure of how many times should every neuron get copied.</param>
+        /// <param name="weightMultiplier">Factor by which weights of synapses after specified layer are multiplied.</param>
+        public void StreachLayer(int layer, int hFactor, int vFactor, int lineLenght, double weightMultiplier)
         {
-            if (factor < 2)
+            
+            
+            int tFactor = hFactor * vFactor;
+            if (tFactor < 2)
                 return;
+
             int baseWidth;
-            Vector<double> tStrip;
             baseWidth = layerCounts[layer];
+            int hStreach = lineLenght * hFactor;
+            int vStreach = hStreach * vFactor;
+            
+            
             if (layer > 0)
             {
-                biases[layer - 1] = Matrix<double>.Build.Dense(baseWidth * factor, 1, (r, c) => biases[layer - 1][r / factor, c]);
-                for (int i = baseWidth - 1; i >= 0; i--)
-                {
-                    tStrip = synapses[layer - 1].Row(i);
-                    
-                    for (int f = 1; f < factor; f++)
-                    {
-                        synapses[layer - 1] = synapses[layer - 1].InsertRow(i, tStrip);
-                    }
-                }
+                Console.WriteLine(synapses[layer - 1]);
+                synapses[layer - 1] = Matrix<double>.Build.Dense(layerCounts[layer] * tFactor, layerCounts[layer - 1], 
+                    (r, c) => synapses[layer - 1][(r / vStreach) * lineLenght + r / hFactor % lineLenght, c]);
                 Console.WriteLine(synapses[layer - 1]);
             }
-            
+
+            Console.WriteLine(biases[layer]);
+            biases[layer] = Matrix<double>.Build.Dense(baseWidth * tFactor, 1, 
+                (r, c) => biases[layer][(r / vStreach) * lineLenght + r / hFactor % lineLenght, c]);
+            Console.WriteLine(biases[layer]);
+
             if (layer < layerCounts.Length - 1)
             {
-                for (int i = baseWidth - 1; i >= 0; i--)
-                {
-                    tStrip = synapses[layer].Column(i);
-                    for (int f = 1; f < factor; f++)
-                    {
-                        synapses[layer] = synapses[layer].InsertColumn(i, tStrip);
-                    }
-                }
+                Console.WriteLine(synapses[layer]);
+                synapses[layer] = Matrix<double>.Build.Dense(layerCounts[layer + 1], layerCounts[layer] * tFactor, 
+                    (r, c) => synapses[layer][r, (c / vStreach) * lineLenght + c / hFactor % lineLenght] * weightMultiplier);
+                Console.WriteLine(synapses[layer]);
             }
-            layerCounts[layer] *= factor;
+            layerCounts[layer] *= tFactor;
         }
 
         #endregion

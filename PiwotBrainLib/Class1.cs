@@ -10,10 +10,11 @@ namespace PiwotBrainLib
     {
         static void Main(string[] args)
         {
-            BrainCore bc = new BrainCore(3, 2, 4);
+            BrainCore bc = new BrainCore(4, 2, 4);
             bc.SaveToFile("", "1");
-            bc.StreachLayer(1, 2);
+            bc.StreachLayer(0, 2, 2, 2, 1);
             bc.SaveToFile("", "2");
+            Console.ReadKey(true);
         }
     }
 }
